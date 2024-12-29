@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IoT Health Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let temperatureData = [];
+        let heartrateData = [];
+        let labels = [];
+
+        async function updateTemperatureChart() {
+            try {
+                const response = await fetch("/temperature");
+                const data = await response.json();
+                if (data.temperature !== undefined) {
+                    const currentTime = new Date().toLocaleTimeString();
+                    temperatureData.push(data.temperature);
+                    labels.push(currentTime);
+
+                    if (temperatureData.length > 10) {
+                        temperatureData.shift();
+                        labels.shift();
+                    }
+
+                    temperatureChart.data.labels = labels;
+                    temperatureChart.data.datasets[0].data = temperatureData;
+                    temperatureChart.update();
+                }
+            } catch (error) {
+                console.error("Error updating temperature chart: ", error);
+            }
+        }
+
+        async function updateHeartRateChart() {
+            try {
+                const response = await fetch("/heartrate");
+                const data = await response.json();
+                if (data.heartrate !== undefined) {
+                    const currentTime = new Date().toLocaleTimeString();
+                    heartrateData.push(data.heartrate);
+
+                    if (heartrateData.length > 10) {
+                        heartrateData.shift();
+                    }
+
+                    heartrateChart.data.labels = labels;
+                    heartrateChart.data.datasets[0].data = heartrateData;
+                    heartrateChart.update();
+                }
+            } catch (error) {
+                console.error("Error updating heart rate chart: ", error);
+            }
+        }
+
+        let temperatureChart;
+        let heartrateChart;
+
+        window.onload = function () {
+            const tempCtx = document.getElementById("temperatureChart").getContext("2d");
+            const hrCtx = document.getElementById("heartrateChart").getContext("2d");
+
+            temperatureChart = new Chart(tempCtx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Temperature (\u00B0C)",
+                        data: temperatureData,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: "Time" } },
+                        y: { title: { display: true, text: "Temperature (\u00B0C)" } }
+                    }
+                }
+            });
+
+            heartrateChart = new Chart(hrCtx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Heart Rate (BPM)",
+                        data: heartrateData,
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: "rgba(255, 99, 132, 0.2)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: "Time" } },
+                        y: { title: { display: true, text: "Heart Rate (BPM)" } }
+                    }
+                }
+            });
+
+            setInterval(updateTemperatureChart, 2000);
+            setInterval(updateHeartRateChart, 2000);
+        };
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        canvas {
+            margin: 20px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>IoT Health Monitoring</h1>
+    <canvas id="temperatureChart" width="800" height="400"></canvas>
+    <canvas id="heartrateChart" width="800" height="400"></canvas>
+</body>
+</html>
