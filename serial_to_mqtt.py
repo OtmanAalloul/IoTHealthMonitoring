@@ -2,6 +2,7 @@ import serial
 import paho.mqtt.client as mqtt
 import time
 import serial.tools.list_ports
+from spo2 import analyze_spo2
 
 # Configuration du port série
 serial_port = "COM5"  # Vérifiez que COM5 est disponible
@@ -12,10 +13,16 @@ broker = "localhost"  # Utilisez localhost si Mosquitto est sur votre machine
 port = 1883
 temperature_topic = "iot/temperature"
 heartrate_topic = "iot/heartrate"
+spo2_topic = "iot/spo2"  # Nouveau topic pour SpO2
 
 # Connexion au broker MQTT
 client = mqtt.Client()
-client.connect(broker, port, 60)
+try:
+    client.connect(broker, port, 60)
+    print(f"Connecté au broker MQTT sur {broker}:{port}.")
+except Exception as e:
+    print(f"Erreur de connexion au broker MQTT : {e}")
+    exit()
 
 # Connexion au port série
 try:
@@ -40,6 +47,13 @@ if ser:
                         bpm = line.split(":")[1].strip()
                         client.publish(heartrate_topic, bpm)
                         print(f"BPM publié : {bpm}")
+                    elif "SpO2" in line:
+                        spo2_data = analyze_spo2(line)
+                        if "spo2" in spo2_data:
+                            client.publish(spo2_topic, spo2_data["spo2"])
+                            print(f"SpO2 publié : {spo2_data['spo2']} % - Anomalie : {spo2_data['anomaly']}")
+                        else:
+                            print(f"Erreur dans les données SpO2 : {spo2_data['error']}")
                 except Exception as e:
                     print(f"Erreur lors de la lecture ou de la publication : {e}")
             else:

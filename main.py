@@ -16,11 +16,16 @@ def on_message(client, userdata, msg):
         data_store["temperature"] = float(payload)
     elif topic == "iot/heartrate":
         data_store["heartrate"] = int(payload)
+    elif topic == "iot/spo2":  # Ajout du SpO2
+        data_store["spo2"] = float(payload)
+
 
 def on_connect(client, userdata, flags, rc):
     print("Connecté au broker MQTT")
     client.subscribe("iot/temperature")
     client.subscribe("iot/heartrate")
+    client.subscribe("iot/spo2")
+
 
 # Configurer MQTT
 mqtt_client = mqtt.Client()
@@ -46,6 +51,14 @@ def get_heartrate():
     if bpm is not None:
         return jsonify(analyze_heart_rate(f"BPM: {bpm}"))
     return jsonify({"error": "No heart rate data available"})
+
+@app.route("/spo2", methods=["GET"])
+def get_spo2():
+    spo2 = data_store.get("spo2")  # Assurez-vous que 'spo2' est bien dans `data_store`
+    if spo2 is not None:
+        return jsonify({"spo2": spo2})
+    return jsonify({"error": "No SpO2 data available"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
