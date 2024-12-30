@@ -38,8 +38,8 @@ It features real-time data visualization, anomaly detection, and a user-friendly
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/OtmanAalloul/IoTHealthMonitoring
+   cd IoTHealthMonitoring
    ```
 2. Install the required Python packages:
    ```bash
