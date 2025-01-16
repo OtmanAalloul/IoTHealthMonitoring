@@ -1,326 +1,620 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Health Monitoring Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Arial', sans-serif;
-        }
-        .card {
-            margin: 20px;
-        }
-        canvas {
-            margin: 10px auto;
-        }
-        .dark-mode {
-            background-color: #343a40;
-            color: white;
-        }
-        .dark-mode .card {
-            background-color: #495057;
-            color: white;
-        }
-    </style>
+    <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="keywords" content="admin, dashboard" />
+	<meta name="author" content="DexignZone" />
+	<meta name="robots" content="index, follow" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Fasto - Flask Saas Admin Dashboard Template" />
+	<meta property="og:title" content="Fasto - Flask Saas Admin Dashboard Template" />
+	<meta property="og:description" content="Fasto - Flask Saas Admin Dashboard Template" />
+	<meta property="og:image" content="https://fasto.dexignzone.com/flask/social-image.png"/>
+	<meta name="format-detection" content="telephone=no">
+    <title>Système Intégré de Surveillance de Santé (SISS)</title>
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/chartist/css/chartist.min.css') }}">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-select/dist/css/bootstrap-select.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
 </head>
 <body>
-    <div class="container py-4">
-        <h1 class="text-center mb-4">IoT Health Monitoring Dashboard</h1>
 
-        <!-- Key Statistics Cards -->
-        <div class="row text-center">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">Température</h5>
-                        <h3 id="temperatureValue">-- °C</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-danger text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">Fréquence cardiaque</h5>
-                        <h3 id="heartrateValue">-- BPM</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">SpO2</h5>
-                        <h3 id="spo2Value">-- %</h3>
-                    </div>
+    <!--*******************
+        Preloader start
+    ********************-->
+    <div id="preloader">
+        <div class="sk-three-bounce">
+            <div class="sk-child sk-bounce1"></div>
+            <div class="sk-child sk-bounce2"></div>
+            <div class="sk-child sk-bounce3"></div>
+        </div>
+    </div>
+    <!--*******************
+        Preloader end
+    ********************-->
+
+    <!--**********************************
+        Main wrapper start
+    ***********************************-->
+    <div id="main-wrapper">
+
+        <!--**********************************
+            Nav header start
+        ***********************************-->
+        <div class="nav-header">
+            <a href="/" class="brand-logo">
+    <img src="{{ url_for('static', filename='images/demo/monitoring-system.png')}}" alt="Logo SISS" class="logo-abbr" style="width: 52px; height: 52px;">
+    <span class="brand-title" style="font-size: 20px; font-weight: bold; color: #4B8067; margin-left: 10px;">SISS</span>
+</a>
+
+
+            <div class="nav-control">
+                <div class="hamburger">
+                    <span class="line"></span><span class="line"></span><span class="line"></span>
                 </div>
             </div>
         </div>
-
-        <!-- Graphs -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        Temperature (°C)
+        <!--**********************************
+            Nav header end
+        ***********************************-->
+		
+		<!--**********************************
+            Header start
+        ***********************************-->
+        <div class="header">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar">
+                                Dashboard
+                            </div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+							<li class="nav-item dropdown notification_dropdown">
+                                <a class="nav-link  ai-icon" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
+                                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M23.3333 19.8333H23.1187C23.2568 19.4597 23.3295 19.065 23.3333 18.6666V12.8333C23.3294 10.7663 22.6402 8.75902 21.3735 7.12565C20.1068 5.49228 18.3343 4.32508 16.3333 3.80679V3.49996C16.3333 2.88112 16.0875 2.28763 15.6499 1.85004C15.2123 1.41246 14.6188 1.16663 14 1.16663C13.3812 1.16663 12.7877 1.41246 12.3501 1.85004C11.9125 2.28763 11.6667 2.88112 11.6667 3.49996V3.80679C9.66574 4.32508 7.89317 5.49228 6.6265 7.12565C5.35983 8.75902 4.67058 10.7663 4.66667 12.8333V18.6666C4.67053 19.065 4.74316 19.4597 4.88133 19.8333H4.66667C4.35725 19.8333 4.0605 19.9562 3.84171 20.175C3.62292 20.3938 3.5 20.6905 3.5 21C3.5 21.3094 3.62292 21.6061 3.84171 21.8249C4.0605 22.0437 4.35725 22.1666 4.66667 22.1666H23.3333C23.6428 22.1666 23.9395 22.0437 24.1583 21.8249C24.3771 21.6061 24.5 21.3094 24.5 21C24.5 20.6905 24.3771 20.3938 24.1583 20.175C23.9395 19.9562 23.6428 19.8333 23.3333 19.8333Z" fill="#67636D"/>
+										<path d="M9.98193 24.5C10.3863 25.2088 10.971 25.7981 11.6767 26.2079C12.3823 26.6178 13.1839 26.8337 13.9999 26.8337C14.816 26.8337 15.6175 26.6178 16.3232 26.2079C17.0289 25.7981 17.6136 25.2088 18.0179 24.5H9.98193Z" fill="#67636D"/>
+									</svg>
+									<span class="badge light text-white bg-primary rounded-circle">4</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <div id="dlab_W_Notification1" class="widget-media dz-scroll p-3 height380">
+										<ul class="timeline">
+											<li>
+												<div class="timeline-panel">
+													<div class="media me-2 media-info">
+														P1
+													</div>
+													<div class="media-body">
+														<h6 class="mb-1">Anomalie : Température de 40 °C</h6>
+														<small class="d-block">7 Janvier 2024 - 02:26 PM</small>
+													</div>
+												</div>
+											</li>
+                                            <li>
+												<div class="timeline-panel">
+													<div class="media me-2 media-info">
+														P2
+													</div>
+													<div class="media-body">
+														<h6 class="mb-1">Anomalie : Température de 40 °C</h6>
+														<small class="d-block">7 Janvier 2024 - 02:26 PM</small>
+													</div>
+												</div>
+											</li>
+                                            <li>
+												<div class="timeline-panel">
+													<div class="media me-2 media-info">
+														P3
+													</div>
+													<div class="media-body">
+														<h6 class="mb-1">Anomalie : Température de 40 °C</h6>
+														<small class="d-block">7 Janvier 2024 - 02:26 PM</small>
+													</div>
+												</div>
+											</li>
+                                            <li>
+												<div class="timeline-panel">
+													<div class="media me-2 media-info">
+														P4
+													</div>
+													<div class="media-body">
+														<h6 class="mb-1">Anomalie : Température de 40 °C</h6>
+														<small class="d-block">7 Janvier 2024 - 02:26 PM</small>
+													</div>
+												</div>
+											</li>
+										</ul>
+									</div>
+                                    <a class="all-notification" href="javascript:void(0)">Voir toutes les notifications <i class="ti-arrow-right"></i></a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown header-profile">
+                                <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
+                                    <img src="{{ url_for('static', filename='images/profile/Outmane-Aalloul.png') }}" width="20" alt=""/>
+									<div class="header-info">
+										<span>Outmane Aalloul</span>
+										<small>Super Admin</small>
+									</div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <a href="/" class="dropdown-item ai-icon">
+                                        <svg id="icon-user1" xmlns="http://www.w3.org/2000/svg" class="text-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        <span class="ms-2">Profil</span>
+                                    </a>
+                                    <a href="/" class="dropdown-item ai-icon">
+                                        <svg id="icon-inbox" xmlns="http://www.w3.org/2000/svg" class="text-success" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        <span class="ms-2">Boîte de réception</span>
+                                    </a>
+                                    <a href="/" class="dropdown-item ai-icon">
+                                        <svg id="icon-logout" xmlns="http://www.w3.org/2000/svg" class="text-danger" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                        <span class="ms-2">Déconnexion</span>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="card-body">
-                        <canvas id="temperatureChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        Heart Rate (BPM)
-                    </div>
-                    <div class="card-body">
-                        <canvas id="heartrateChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
+                </nav>
             </div>
         </div>
+        <!--**********************************
+            Header end ti-comment-alt
+        ***********************************-->
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        SpO2 (%)
-                    </div>
-                    <div class="card-body">
-                        <canvas id="spo2Chart" width="400" height="200"></canvas>
-                    </div>
+        <!--**********************************
+            Sidebar start
+        ***********************************-->
+        <div class="deznav">
+            <div class="deznav-scroll">
+				<a class="add-project-sidebar btn btn-primary" href="javascript:void(0)"  data-bs-toggle="modal" data-bs-target="#addProjectSidebar" >+ Ajouter un patient</a>
+				<ul class="metismenu" id="menu">
+                    <li><a href="/" class="ai-icon" aria-expanded="false">
+							<i class="flaticon-layout"></i>
+							<span class="nav-text">Dashboard</span>
+						</a>
+					</li>
+                    <li><a href="#" class="ai-icon" aria-expanded="false">
+							<i class="flaticon-monitor"></i>
+							<span class="nav-text">Rapports</span>
+						</a>
+					</li>
+                    <li><a href="#" class="ai-icon" aria-expanded="false">
+							<i class="flaticon-bar-chart-1"></i>
+							<span class="nav-text">Statistiques</span>
+						</a>
+					</li>
+                    <li><a class="has-arrow ai-icon" href="#" aria-expanded="false">
+							<i class="flaticon-contract"></i>
+							<span class="nav-text">Patients</span>
+						</a>
+                        <ul aria-expanded="false">
+                            <li><a href="./form-element.html">Liste des patients</a></li>
+                            <li><a href="./form-wizard.html">Ajouter un patient</a></li>
+                            <li><a href="./ckeditor.html">Modifier un patient</a></li>
+                            <li><a href="form-pickers.html">Supprimer un patient</a></li>
+                        </ul>
+                    </li>
+                </ul>
+				<div class="copyright">
+					<p><strong>Système Intégré de Surveillance de Santé (SISS)</strong></p>
+					<p class="fs-12">Developed by Outmane AALLOUL</p>
+				</div>
+			</div>
+        </div>
+        <!--**********************************
+            Sidebar end
+        ***********************************-->
+		
+		<!--**********************************
+            Content body start
+        ***********************************-->
+        <div class="content-body">
+			<div class="container-fluid">
+				<!-- Add Patient -->
+				<div class="modal fade" id="addProjectSidebar">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">Ajouter un patient</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group">
+										<label class="text-black font-w500">Nom & prénom</label>
+										<input type="text" class="form-control">
+									</div>
+									<div class="form-group">
+												<label class="text-black font-w500">Date de naissance</label>
+												<div class="cal-icon"><input type="date" class="form-control"><i class="far fa-calendar-alt"></i></div>
+											</div>
+									<div class="form-group">
+										<label class="text-black font-w500">Maladie</label>
+										<input type="text" class="form-control">
+									</div>
+									<div class="form-group">
+										<button type="button" class="btn btn-primary">Ajouter</button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xl-3 col-xxl-3 col-lg-6 col-sm-6">
+						<div class="card card-bd">
+							<div class="bg-secondary card-border"></div>
+							<div class="card-body box-style">
+								<div class="media align-items-center">
+									<div class="media-body me-3">
+    <h2 class="num-text text-black font-w700" id="temperature">--</h2>
+    <span class="fs-14">Température corporelle</span>
+</div>
+									<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 2C16.3431 2 15 3.34315 15 5V22C13.3431 22 12 23.3431 12 25C12 27.2091 13.7909 29 16 29C18.2091 29 20 27.2091 20 25C20 23.3431 18.6569 22 17 22V5C17 3.34315 16.6569 2 18 2ZM18 26.5C16.8954 26.5 16 25.6046 16 24.5C16 23.3954 16.8954 22.5 18 22.5C19.1046 22.5 20 23.3954 20 24.5C20 25.6046 19.1046 26.5 18 26.5Z" fill="#864AD1"/>
+</svg>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xl-3 col-xxl-3 col-lg-6 col-sm-6">
+						<div class="card card-bd">
+						<div class="bg-warning card-border"></div>
+							<div class="card-body box-style">
+								<div class="media align-items-center">
+									<div class="media-body me-3">
+    <h2 class="num-text text-black font-w700" id="heartrate">--</h2>
+    <span class="fs-14">Fréquence des battements</span>
+</div>
+									<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 3C10.268 3 4 9.268 4 17C4 22.9411 7.57988 27.5643 12.6935 30.0896C13.3316 30.4092 14.021 30.6816 14.75 30.9042L15.6237 26.319C15.8051 25.3784 16.6304 24.6816 17.5858 24.6816C18.5411 24.6816 19.3664 25.3784 19.5478 26.319L20.4221 30.9054C21.179 30.6678 21.892 30.372 22.5653 30.0142C27.7764 27.3821 31.5 22.8556 31.5 17C31.5 9.268 25.232 3 18 3Z" fill="#FFB930"/>
+</svg>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xl-3 col-xxl-3 col-lg-6 col-sm-6">
+						<div class="card card-bd">
+						<div class="bg-primary card-border"></div>
+							<div class="card-body box-style">
+								<div class="media align-items-center">
+									<div class="media-body me-3">
+    <h2 class="num-text text-black font-w700" id="spo2">--</h2>
+    <span class="fs-14">Saturation en oxygène (SpO₂)</span>
+</div>
+									<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 3C10.268 3 4 9.268 4 17C4 22.9411 7.57988 27.5643 12.6935 30.0896C13.3316 30.4092 14.021 30.6816 14.75 30.9042L15.6237 26.319C15.8051 25.3784 16.6304 24.6816 17.5858 24.6816C18.5411 24.6816 19.3664 25.3784 19.5478 26.319L20.4221 30.9054C21.179 30.6678 21.892 30.372 22.5653 30.0142C27.7764 27.3821 31.5 22.8556 31.5 17C31.5 9.268 25.232 3 18 3Z" fill="#FFB930"/>
+</svg>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xl-3 col-xxl-3 col-lg-6 col-sm-6">
+						<div class="card card-bd">
+							<div class="bg-info card-border"></div>
+							<div class="card-body box-style">
+								<div class="media align-items-center">
+									<div class="media-body me-3">
+    <h2 class="num-text text-black font-w700" id="anomalyCount">0</h2>
+    <span class="fs-14">Signalement d'anomalie</span>
+</div>
+									<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 3L3 33H33L18 3ZM18 13C18.5523 13 19 13.4477 19 14V22C19 22.5523 18.5523 23 18 23C17.4477 23 17 22.5523 17 22V14C17 13.4477 17.4477 13 18 13ZM18 26C17.4477 26 17 26.4477 17 27C17 27.5523 17.4477 28 18 28C18.5523 28 19 27.5523 19 27C19 26.4477 18.5523 26 18 26Z" fill="#FF0000"/>
+    </svg>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+<!--**********************************
+            Charts section
+        ***********************************-->
+
+
+				<div class="row">
+    <!-- Température -->
+    <div class="col-xl-6 col-xxl-12">
+        <div class="card">
+            <div class="card-header d-block border-0 pb-0">
+                <div class="d-flex justify-content-between pb-3">
+                    <h4 class="mb-0 text-black fs-20">Température corporelle</h4>
                 </div>
             </div>
+            <div class="card-body pb-0 px-2 pt-2">
+                <canvas id="temperatureChart" style="width: 300px; height: 90px;"></canvas>
+            </div>
         </div>
-
-        <!-- Historical Data Table -->
-        <table class="table table-striped mt-4">
-            <thead>
-                <tr>
-                    <th scope="col">Temps</th>
-                    <th scope="col">Température (°C)</th>
-                    <th scope="col">Fréquence cardiaque (BPM)</th>
-                    <th scope="col">SpO2 (%)</th>
-                </tr>
-            </thead>
-            <tbody id="dataTable">
-                <!-- Les lignes seront insérées dynamiquement -->
-            </tbody>
-        </table>
-
-        <!-- Anomalies Table -->
-        <h3 class="mt-5">Anomalies Détectées</h3>
-        <table class="table table-striped mt-2">
-            <thead>
-                <tr>
-                    <th scope="col">Temps</th>
-                    <th scope="col">Paramètre</th>
-                    <th scope="col">Valeur</th>
-                    <th scope="col">Type d'Anomalie</th>
-                </tr>
-            </thead>
-            <tbody id="anomaliesTable">
-                <!-- Les anomalies seront insérées dynamiquement -->
-            </tbody>
-        </table>
-
-        <!-- Dark Mode Toggle -->
-        <button id="toggleDarkMode" class="btn btn-secondary">Activer le mode sombre</button>
     </div>
 
-    <audio id="normalSound" src="static/audio/normal.mp3" loop></audio>
-    <audio id="anomalySound" src="static/audio/anomaly.mp3"></audio>
+    <!-- Fréquence cardiaque -->
+    <div class="col-xl-6 col-xxl-12">
+        <div class="card">
+            <div class="card-header d-block border-0 pb-0">
+                <div class="d-flex justify-content-between pb-3">
+                    <h4 class="mb-0 text-black fs-20">Fréquence cardiaque</h4>
+                </div>
+            </div>
+            <div class="card-body pb-0 px-2 pt-2">
+                <canvas id="heartrateChart" style="width: 300px; height: 90px;"></canvas>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        let temperatureData = [];
-        let heartrateData = [];
-        let spo2Data = [];
-        let labels = [];
+    <!-- SpO₂ -->
+    <div class="col-xl-6 col-xxl-12">
+        <div class="card">
+            <div class="card-header d-block border-0 pb-0">
+                <div class="d-flex justify-content-between pb-3">
+                    <h4 class="mb-0 text-black fs-20">Saturation en oxygène (SpO₂)</h4>
+                </div>
+            </div>
+            <div class="card-body pb-0 px-2 pt-2">
+                <canvas id="spo2Chart" style="width: 300px; height: 90px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-        async function fetchData(endpoint, dataKey, chart, dataset, soundIdNormal, soundIdAnomaly, valueElementId) {
-            try {
-                const response = await fetch(endpoint);
-                const data = await response.json();
+        <!--**********************************
+            Alerts section
+        ***********************************-->
+				<div class="row">
+					<div class="col-xl-6 col-xxl-12">
+						<div class="row">
+							<div class="col-xl-12">
+								<div class="card message-bx">
+									<div class="card-header border-0 d-sm-flex d-block pb-0">
+										<div>
+											<h4 class="fs-20 mb-0  text-black mb-sm-0 mb-2">Les dernières alertes d'anomalies envoyées</h4>
+										</div>
+										<a href="contacts.html" class="btn btn-primary shadow-primary btn-rounded text-white">+ New Alerte</a>
+									</div>
+									<div class="card-body">
+										<div class="media mb-3 pb-3 border-bottom">
+											<div class="image-bx me-sm-4 me-2">
+												<img src="images/profile/Untitled-1.jpg" alt="" class="rounded-circle img-1">
+											</div>
+											<div class="media-body d-sm-flex justify-content-between d-block align-items-center">
+												<div class="me-sm-3 me-0">
+													<h6 class="fs-16 font-w600 mb-sm-2 mb-0"><a href="messages.html" class="text-black">Patient 1</a></h6>
+													<p class="text-black mb-1">Une anomalie a été détectée au niveau de la température. Valeur : 39 °C</p>
+													<span class="fs-14">5min</span>
+												</div>
+											</div>
+										</div>
+										<div class="media mb-3 pb-3 border-bottom">
+											<div class="image-bx me-sm-4 me-2">
+												<img src="images/profile/Untitled-2.jpg" alt="" class="rounded-circle img-1">
+											</div>
+											<div class="media-body d-sm-flex justify-content-between d-block align-items-center">
+												<div class="me-sm-3 me-0">
+													<h6 class="fs-16 font-w600 mb-sm-2 mb-0"><a href="messages.html" class="text-black">Patient 2</a></h6>
+													<p class="text-black mb-1">Une anomalie a été détectée au niveau de la température. Valeur : 39 °C</p>
+													<span class="fs-14">5min</span>
+												</div>
+											</div>
+										</div>
+										<div class="media">
+											<div class="image-bx me-sm-4 me-2">
+												<img src="images/profile/Untitled-3.jpg" alt="" class="rounded-circle img-1">
+											</div>
+											<div class="media-body d-sm-flex justify-content-between d-block align-items-center">
+												<div class="me-sm-3 me-0">
+													<h6 class="fs-16 font-w600 mb-sm-2 mb-0"><a href="messages.html" class="text-black">Patient 3</a></h6>
+													<p class="text-black mb-1">Une anomalie a été détectée au niveau de la température. Valeur : 39 °C</p>
+													<span class="fs-14">5min</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+        <!--**********************************
+            Content body end
+        ***********************************-->
 
-                const anomaly = data.anomaly;
+        <!--**********************************
+            Footer start
+        ***********************************-->
+        <div class="footer">
+            <div class="copyright">
+                 <p>Système Intégré de Surveillance de Santé (SISS) 2024</p>
+            </div>
+        </div>
+        <!--**********************************
+            Footer end
+        ***********************************-->
 
-                if (data[dataKey] !== undefined) {
-                    const currentTime = new Date().toLocaleTimeString();
-                    dataset.push(data[dataKey]);
-                    if (dataset.length > 10) {
-                        dataset.shift();
-                        labels.shift();
-                    }
-                    labels.push(currentTime);
+		<!--**********************************
+           Support ticket button start
+        ***********************************-->
 
-                    chart.data.labels = labels;
-                    chart.data.datasets[0].data = dataset;
-                    chart.update();
+        <!--**********************************
+           Support ticket button end
+        ***********************************-->
 
-                    // Mettre à jour la dernière valeur dans la carte
-                    document.getElementById(valueElementId).textContent = `${data[dataKey]} ${valueElementId === "temperatureValue" ? "°C" : valueElementId === "heartrateValue" ? "BPM" : "%"}`;
 
-                    if (anomaly && anomaly !== "Normal") {
-                        playSound(soundIdAnomaly);
-                        addAnomalyRow(currentTime, dataKey, data[dataKey], anomaly);
-                    } else {
-                        playSound(soundIdNormal);
-                    }
-                }
-            } catch (error) {
-                console.error(`Error fetching ${dataKey}:`, error);
+	</div>
+    <!--**********************************
+        Main wrapper end
+    ***********************************-->
+
+    <!--**********************************
+        Scripts
+    ***********************************-->
+    <!-- Required vendors -->
+    <script src="{{ url_for('static', filename='vendor/global/global.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap-select/dist/js/bootstrap-select.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.js/Chart.bundle.min.js') }}"></script>
+
+<!-- Chart piety plugin files -->
+<script src="{{ url_for('static', filename='vendor/peity/jquery.peity.min.js') }}"></script>
+
+<!-- Apex Chart -->
+<script src="{{ url_for('static', filename='vendor/apexchart/apexchart.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- Dashboard 1 -->
+<script src="{{ url_for('static', filename='js/dashboard/dashboard-1.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/custom.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/deznav-init.js') }}"></script>
+<script src="{{ url_for('static', filename='js/demo.js') }}"></script>
+<script src="{{ url_for('static', filename='js/styleSwitcher.js') }}"></script>
+
+
+
+{#    JavaScript for Dynamic Updates#}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const temperatureData = [];
+const temperatureLabels = [];
+const heartrateData = [];
+const heartrateLabels = [];
+const spo2Data = [];
+const spo2Labels = [];
+
+// Initialisation des graphiques
+const temperatureChart = new Chart(document.getElementById("temperatureChart"), {
+    type: "line",
+    data: {
+        labels: temperatureLabels,
+        datasets: [{
+            label: "Température (°C)",
+            data: temperatureData,
+            borderColor: "rgba(255, 99, 132, 1)",
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            tension: 0,
+        }],
+    },
+});
+
+const heartrateChart = new Chart(document.getElementById("heartrateChart"), {
+    type: "line",
+    data: {
+        labels: heartrateLabels,
+        datasets: [{
+            label: "Fréquence cardiaque (BPM)",
+            data: heartrateData,
+            borderColor: "rgba(54, 162, 235, 1)",
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            tension: 0,
+        }],
+    },
+});
+
+const spo2Chart = new Chart(document.getElementById("spo2Chart"), {
+    type: "line",
+    data: {
+        labels: spo2Labels,
+        datasets: [{
+            label: "SpO₂ (%)",
+            data: spo2Data,
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            tension: 0,
+        }],
+    },
+});
+
+// Fonction pour récupérer les données du backend
+async function fetchData() {
+    try {
+        const response = await fetch("/api/data");
+        const data = await response.json();
+        const currentTime = new Date().toLocaleTimeString();
+
+        // Mise à jour des données pour chaque graphique et valeur
+        updateChartAndValue(
+            temperatureChart, temperatureData, temperatureLabels, parseFloat(data.temperature), currentTime, "temperature"
+        );
+        updateChartAndValue(
+            heartrateChart, heartrateData, heartrateLabels, parseInt(data.heartrate), currentTime, "heartrate"
+        );
+        updateChartAndValue(
+            spo2Chart, spo2Data, spo2Labels, parseFloat(data.spo2), currentTime, "spo2"
+        );
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+    }
+}
+
+// Fonction pour mettre à jour un graphique et la dernière valeur
+function updateChartAndValue(chart, dataset, labels, value, label, elementId) {
+    dataset.push(value);
+    if (dataset.length > 10) dataset.shift(); // Limiter les données à 10 points
+
+    labels.push(label);
+    if (labels.length > 10) labels.shift(); // Limiter les étiquettes à 10 points
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = dataset;
+    chart.update();
+
+    // Mettre à jour la dernière valeur dans l'interface utilisateur
+    document.getElementById(elementId).innerText = `${value} ${
+        elementId === "temperature" ? "°C" : elementId === "heartrate" ? "BPM" : "%"
+    }`;
+}
+
+// Mettre à jour les données toutes les 3 secondes
+setInterval(fetchData, 3000);
+
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+
+<script>
+    async function fetchAnomalyCount() {
+        try {
+            const response = await fetch("/api/anomaly_count");
+            const data = await response.json();
+
+            // Mettre à jour l'interface utilisateur avec le compteur
+            document.getElementById("anomalyCount").innerText = data.count;
+        } catch (error) {
+            console.error("Erreur lors de la récupération du compteur d'anomalies :", error);
+        }
+    }
+
+    // Vérifier le compteur d'anomalies toutes les 2 secondes
+    setInterval(fetchAnomalyCount, 2000);
+</script>
+<script>
+    async function checkAlertStatus() {
+        try {
+            const response = await fetch("/api/alert_status");
+            const data = await response.json();
+
+            if (data.alert_sent) {
+                // Afficher l'alerte SweetAlert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Anomalie détectée',
+                    text: `${data.parameter}`
+                });
             }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du statut d'alerte :", error);
         }
+    }
 
-        function playSound(soundId) {
-            const sound = document.getElementById(soundId);
-            sound.pause();
-            sound.currentTime = 0;
-            sound.play();
-        }
+    // Vérifier le statut des alertes toutes les 2 secondes
+    setInterval(checkAlertStatus, 2000);
+</script>
 
-        function addTableRow(time, temperature, heartrate, spo2) {
-            const table = document.getElementById("dataTable");
-            const rows = table.querySelectorAll("tr");
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${time}</td>
-                <td>${temperature || "--"}</td>
-                <td>${heartrate || "--"}</td>
-                <td>${spo2 || "--"}</td>
-            `;
-
-            table.prepend(row);
-
-            // Supprimer les lignes excédentaires pour ne garder que les 10 dernières
-            if (rows.length >= 10) {
-                rows[rows.length - 1].remove();
-            }
-        }
-
-        function addAnomalyRow(time, parameter, value, anomalyType) {
-            const anomaliesTable = document.getElementById("anomaliesTable");
-            const rows = anomaliesTable.querySelectorAll("tr");
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${time}</td>
-                <td>${parameter}</td>
-                <td>${value}</td>
-                <td>${anomalyType}</td>
-            `;
-
-            anomaliesTable.prepend(row);
-
-            // Supprimer les lignes excédentaires pour ne garder que les 10 dernières
-            if (rows.length >= 10) {
-                rows[rows.length - 1].remove();
-            }
-        }
-
-        function checkAnomalies(temp, heartrate, spo2) {
-            const tempCard = document.querySelector(".card.bg-primary");
-            const hrCard = document.querySelector(".card.bg-danger");
-            const spo2Card = document.querySelector(".card.bg-success");
-
-            tempCard.style.backgroundColor = (temp > 37.2 || temp < 36.1) ? "#ffc107" : "#007bff";
-            hrCard.style.backgroundColor = (heartrate > 100 || heartrate < 60) ? "#ffc107" : "#dc3545";
-            spo2Card.style.backgroundColor = (spo2 < 90) ? "#ffc107" : "#28a745";
-        }
-
-        document.getElementById("toggleDarkMode").addEventListener("click", () => {
-            document.body.classList.toggle("dark-mode");
-        });
-
-        window.onload = function () {
-            const tempCtx = document.getElementById("temperatureChart").getContext("2d");
-            const hrCtx = document.getElementById("heartrateChart").getContext("2d");
-            const spo2Ctx = document.getElementById("spo2Chart").getContext("2d");
-
-            const temperatureChart = new Chart(tempCtx, {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Temperature (°C)",
-                        data: temperatureData,
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        backgroundColor: "rgba(54, 162, 235, 0.2)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: { title: { display: true, text: "Time" } },
-                        y: { title: { display: true, text: "Temperature (°C)" } }
-                    }
-                }
-            });
-
-            const heartrateChart = new Chart(hrCtx, {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Heart Rate (BPM)",
-                        data: heartrateData,
-                        borderColor: "rgba(255, 99, 132, 1)",
-                        backgroundColor: "rgba(255, 99, 132, 0.2)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: { title: { display: true, text: "Time" } },
-                        y: { title: { display: true, text: "Heart Rate (BPM)" } }
-                    }
-                }
-            });
-
-            const spo2Chart = new Chart(spo2Ctx, {
-                type: "line",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "SpO2 (%)",
-                        data: spo2Data,
-                        borderColor: "rgba(75, 192, 192, 1)",
-                        backgroundColor: "rgba(75, 192, 192, 0.2)",
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: { title: { display: true, text: "Time" } },
-                        y: { title: { display: true, text: "SpO2 (%)" } }
-                    }
-                }
-            });
-
-            setInterval(() => fetchData("/temperature", "temperature", temperatureChart, temperatureData, "normalSound", "anomalySound", "temperatureValue"), 2000);
-            setInterval(() => fetchData("/heartrate", "heartrate", heartrateChart, heartrateData, "normalSound", "anomalySound", "heartrateValue"), 2000);
-            setInterval(() => fetchData("/spo2", "spo2", spo2Chart, spo2Data, "normalSound", "anomalySound", "spo2Value"), 2000);
-
-            setInterval(async () => {
-                const currentTime = new Date().toLocaleTimeString();
-
-                const tempResponse = await fetch("/temperature");
-                const heartrateResponse = await fetch("/heartrate");
-                const spo2Response = await fetch("/spo2");
-
-                const tempData = await tempResponse.json();
-                const heartrateData = await heartrateResponse.json();
-                const spo2Data = await spo2Response.json();
-
-                addTableRow(currentTime, tempData.temperature, heartrateData.heartrate, spo2Data.spo2);
-                checkAnomalies(tempData.temperature, heartrateData.heartrate, spo2Data.spo2);
-            }, 2000);
-        };
-    </script>
+	
 </body>
 </html>

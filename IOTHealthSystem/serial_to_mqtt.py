@@ -1,8 +1,6 @@
 import serial
 import paho.mqtt.client as mqtt
 import time
-import serial.tools.list_ports
-from spo2 import analyze_spo2
 
 # Configuration du port série
 serial_port = "COM5"  # Vérifiez que COM5 est disponible
@@ -13,7 +11,7 @@ broker = "localhost"  # Utilisez localhost si Mosquitto est sur votre machine
 port = 1884
 temperature_topic = "iot/temperature"
 heartrate_topic = "iot/heartrate"
-spo2_topic = "iot/spo2"  # Nouveau topic pour SpO2
+spo2_topic = "iot/spo2"
 
 # Connexion au broker MQTT
 client = mqtt.Client()
@@ -39,21 +37,28 @@ if ser:
             if ser.in_waiting > 0:  # Vérifie si des données sont disponibles
                 try:
                     line = ser.readline().decode('utf-8').strip()
-                    if "Temperature" in line:
-                        temp = line.split(":")[1].strip().replace("°C", "")
-                        client.publish(temperature_topic, temp)
-                        print(f"Température publiée : {temp} °C")
-                    elif "BPM" in line:
-                        bpm = line.split(":")[1].strip()
-                        client.publish(heartrate_topic, bpm)
-                        print(f"BPM publié : {bpm}")
-                    elif "SpO2" in line:
-                        spo2_data = analyze_spo2(line)
-                        if "spo2" in spo2_data:
-                            client.publish(spo2_topic, spo2_data["spo2"])
-                            print(f"SpO2 publié : {spo2_data['spo2']} % - Anomalie : {spo2_data['anomaly']}")
-                        else:
-                            print(f"Erreur dans les données SpO2 : {spo2_data['error']}")
+                    print(f"Données reçues : {line}")
+
+                    # Split the line into key-value pairs
+                    parts = line.split(";")
+                    data = {}
+                    for part in parts:
+                        key, value = part.split(":")
+                        data[key.strip()] = value.strip()
+
+                    # Publish each value to its respective topic
+                    if "Temperature" in data:
+                        client.publish(temperature_topic, data["Temperature"])
+                        print(f"Température publiée : {data['Temperature']} °C")
+
+                    if "BPM" in data:
+                        client.publish(heartrate_topic, data["BPM"])
+                        print(f"BPM publié : {data['BPM']}")
+
+                    if "SpO2" in data:
+                        client.publish(spo2_topic, data["SpO2"])
+                        print(f"SpO2 publié : {data['SpO2']} %")
+
                 except Exception as e:
                     print(f"Erreur lors de la lecture ou de la publication : {e}")
             else:
